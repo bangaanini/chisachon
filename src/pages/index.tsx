@@ -6,7 +6,8 @@ import Hero from './HeroSection';
 import Header from './Header';
 import Wallet from './Wallet';
 import Price from './Price';
-import { FAQ, Footer } from './FAQ'
+import FAQ from './FAQ'
+import Footer from './footer'
 import Link from 'next/link';
 
 
