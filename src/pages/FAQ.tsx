@@ -4,7 +4,34 @@
 import TOS  from './TOS'
 
 
+import { useState } from 'react';
+
 const FAQ = () => {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  const toggleAccordion = (index: number) => {
+    setActiveIndex(activeIndex === index ? null : index);
+  };
+
+  const faqs = [
+    {
+      question: "What is Cloud Mining?",
+      answer: "Cloud mining allows you to participate in cryptocurrency mining without managing physical hardware. We handle all the complex infrastructure while you earn rewards proportional to your investment."
+    },
+    {
+      question: "How do I start mining?",
+      answer: "Simply choose a mining plan, deposit USDT, and watch your rewards grow. Our system automatically allocates mining power based on your investment."
+    },
+    {
+      question: "When can I withdraw profits?",
+      answer: "You can withdraw your mining rewards anytime after 24 hours of initial deposit. Withdrawals are processed within 12-24 hours."
+    },
+    {
+      question: "Is my investment safe?",
+      answer: "We use enterprise-grade security measures including cold storage for funds and smart contract audits. However, always remember cryptocurrency investments carry inherent risks."
+    }
+  ];
+
   return (
     <section className="bg-gray-900 py-12 px-4">
       <div className="max-w-7xl mx-auto">
@@ -12,52 +39,24 @@ const FAQ = () => {
           Frequently Asked Questions
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* FAQ Item 1 */}
-          <div className="p-6 bg-gray-800 rounded-xl border border-gray-700">
-            <h3 className="text-xl font-semibold text-white mb-3">
-              What is Cloud Mining?
-            </h3>
-            <p className="text-gray-400">
-              Cloud mining allows you to participate in cryptocurrency mining without 
-              managing physical hardware. We handle all the complex infrastructure while 
-              you earn rewards proportional to your investment.
-            </p>
-          </div>
-
-          {/* FAQ Item 2 */}
-          <div className="p-6 bg-gray-800 rounded-xl border border-gray-700">
-            <h3 className="text-xl font-semibold text-white mb-3">
-              How do I start mining?
-            </h3>
-            <p className="text-gray-400">
-              Simply choose a mining plan, deposit USDT, and watch your rewards grow. 
-              Our system automatically allocates mining power based on your investment.
-            </p>
-          </div>
-
-          {/* FAQ Item 3 */}
-          <div className="p-6 bg-gray-800 rounded-xl border border-gray-700">
-            <h3 className="text-xl font-semibold text-white mb-3">
-              When can I withdraw profits?
-            </h3>
-            <p className="text-gray-400">
-              You can withdraw your mining rewards anytime after 24 hours of initial 
-              deposit. Withdrawals are processed within 12-24 hours.
-            </p>
-          </div>
-
-          {/* FAQ Item 4 */}
-          <div className="p-6 bg-gray-800 rounded-xl border border-gray-700">
-            <h3 className="text-xl font-semibold text-white mb-3">
-              Is my investment safe?
-            </h3>
-            <p className="text-gray-400">
-              We use enterprise-grade security measures including cold storage for funds 
-              and smart contract audits. However, always remember cryptocurrency 
-              investments carry inherent risks.
-            </p>
-          </div>
+        <div className="space-y-4">
+          {faqs.map((faq, index) => (
+            <div key={index} className="bg-gray-800 rounded-xl border border-gray-700">
+              <button
+                className="w-full text-left p-6 focus:outline-none"
+                onClick={() => toggleAccordion(index)}
+              >
+                <h3 className="text-xl font-semibold text-white mb-3">
+                  {faq.question}
+                </h3>
+              </button>
+              {activeIndex === index && (
+                <div className="p-6 pt-0 text-gray-400">
+                  <p>{faq.answer}</p>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </section>

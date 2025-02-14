@@ -124,10 +124,10 @@ const PrivacyPolicy = () => {
           </p>
           <ul className="list-disc list-inside mb-4">
             <li>
-              <strong>Email:</strong> [Your Email Address]
+              <strong>Email:</strong> support@chisachon.com
             </li>
             <li>
-              <strong>Address:</strong> [Your Office Address, if applicable]
+              <strong>Address:</strong> 942 Pennsylvania Avenue, New Jersey
             </li>
           </ul>
         </div>

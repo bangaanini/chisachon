@@ -13,7 +13,7 @@ const Footer = () => {
             <div className="space-y-4">
               <h3 className="text-white font-bold text-lg">Chisachon Cloud Mining</h3>
               <p className="text-gray-400 text-sm">
-                Trusted cryptocurrency cloud mining platform since 2022
+              We are one of the leading cryptocurrency mining platforms, offering cryptocurrency mining capacities in every range - for newcomers. Our mission is to make acquiring cryptocurrencies easy and fast for everyone.
               </p>
             </div>
 
