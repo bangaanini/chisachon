@@ -335,7 +335,7 @@ const Wallet = () => {
   if (!mounted) return null;
   
   return (
-    <section className="max-w-4xl mx-auto my-12 p-6 bg-gray-900 rounded-xl shadow-2xl shadow-[0_0_20px_-5px_rgba(96,165,250,0.3)]">
+    <section className="max-w-4xl mx-auto my-12 p-6 bg-gray-900 rounded-xl shadow-[0_0_20px_-5px_rgba(96,165,250,0.3)]">
       <h2 className="text-3xl text-white font-bold text-center mb-8">Wallet Information</h2>
       <div className="flex border-b border-gray-700 justify-center gap-4">
         <button

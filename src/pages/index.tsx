@@ -7,7 +7,7 @@ import Header from './Header';
 import Wallet from './Wallet';
 import Price from './Price';
 import FAQ from './FAQ'
-import Footer from './footer'
+import Footer from './Footer'
 import Link from 'next/link';
 
 

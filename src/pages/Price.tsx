@@ -9,7 +9,7 @@ const USDT_CONTRACT = process.env.NEXT_PUBLIC_USDT_ADDRESS;
 
 const Price = () => {
   const { address } = useAccount();
-  const [sliderValue, setSliderValue] = useState(50); // Minimal $500
+  const [sliderValue, setSliderValue] = useState(50);
   const [txProcessing, setTxProcessing] = useState(false);
   const [pendingPlanData, setPendingPlanData] = useState<{
     depositAmount: number;
@@ -109,7 +109,7 @@ const Price = () => {
   
 
   return (
-    <section className="max-w-4xl mx-auto my-12 p-6 bg-gray-900 rounded-xl shadow-2xl shadow-[0_0_20px_-5px_rgba(96,165,250,0.3)]">
+    <section className="max-w-4xl mx-auto my-12 p-6 bg-gray-900 rounded-xl shadow-[0_0_20px_-5px_rgba(96,165,250,0.3)]">
       
       <div className="pt-8 space-y-6">
         <div className="p-6 border border-gray-700 rounded-xl bg-gradient-to-br from-blue-900/50 to-purple-900/50">
@@ -118,7 +118,7 @@ const Price = () => {
               PRICING
             </span>
             <p className="text-white text-sm">
-               Earn passive income from cryptocurrency mining with an estimated income of 20 - 30%.
+                Earn passive income from cryptocurrency mining with an estimated income of 20 - 30%.
               </p>
               <div className="mt-4 space-y-3">
                 {[
@@ -137,9 +137,7 @@ const Price = () => {
                 ))}
             </div>
             <div className="mt-4 space-y-3">
-              
             </div>
-
             <div className="px-6 py-4 bg-gradient-to-br from-blue-800 to-purple-800 rounded-lg mb-6">
               <label htmlFor="depositSlider" className="block text-gray-200 mb-2">
                 Select Deposit Amount ($)
@@ -147,9 +145,9 @@ const Price = () => {
               <input
                 id="depositSlider"
                 type="range"
-                min={500}
+                min={50}
                 max={5000}
-                step={50}
+                step={10}
                 value={sliderValue}
                 onChange={(e) => setSliderValue(Number(e.target.value))}
                 className="w-full"
