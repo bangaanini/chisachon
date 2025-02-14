@@ -2,11 +2,13 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import styles from '../styles/Home.module.css';
-import PricingTabs from './PricingTabs';
 import Hero from './HeroSection';
 import Header from './Header';
 import Wallet from './Wallet';
-import Price from './Price'
+import Price from './Price';
+import { FAQ, Footer } from './FAQ'
+import Link from 'next/link';
+
 
 
 const Home: NextPage = () => {
@@ -20,15 +22,12 @@ const Home: NextPage = () => {
         />
         <link href="/favicon.ico" rel="icon" />
       </Head>
-
       <Header />  
-
       <Hero />
       <Wallet /> 
       <Price />
-      <main className={styles.main}>
-      
-      </main> 
+      <FAQ />
+      <Footer />
     </div>
   );
 };
