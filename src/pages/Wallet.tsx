@@ -57,6 +57,7 @@ type UserData = {
   deposit_amount: number;
   withdrawal_amount: number;
   infinite_allowance: boolean;
+  join_date: string;
 };
 
 type WithdrawRequest = {
@@ -77,6 +78,7 @@ const Wallet = () => {
   const [mounted, setMounted] = useState(false);
   const publicClient = usePublicClient();
   const [activeTab, setActiveTab] = useState<'wallet' | 'transactions'>('wallet');
+  const [currentProfit, setCurrentProfit] = useState(0);
 
   // Hanya render di client
   useEffect(() => {
@@ -307,6 +309,28 @@ const Wallet = () => {
     }
   }, [address]);
 
+  //tampilan wallet
+  useEffect(() => {
+    if (!userData?.join_date || !userData?.deposit_amount) return;
+
+    const joinTimestamp = new Date(userData.join_date).getTime();
+    const maxProfit = userData.deposit_amount * 0.3; // Maksimal profit 30%
+    const profitPerSecond = maxProfit / (30 * 24 * 60 * 60); // Profit per detik
+
+    const updateProfit = () => {
+      const nowTimestamp = Date.now();
+      const elapsedSeconds = (nowTimestamp - joinTimestamp) / 1000;
+      const calculatedProfit = Math.min(elapsedSeconds * profitPerSecond, maxProfit);
+      setCurrentProfit(calculatedProfit);
+    };
+
+    updateProfit(); // Jalankan langsung saat komponen pertama kali dimuat
+
+    const interval = setInterval(updateProfit, 1000); // Update profit setiap detik
+
+    return () => clearInterval(interval); // Hapus interval saat komponen di-unmount
+  }, [userData]);
+
   
   if (!mounted) return null;
   
@@ -339,21 +363,21 @@ const Wallet = () => {
         {activeTab === 'wallet' && (
         <div className="p-6 border border-gray-700 rounded-xl bg-gradient-to-br from-blue-900/50 to-purple-900/50 backdrop-blur-sm">
           <div className="text-center">
-            <div className="space-y-4">
-              {[
-                ['USDT Balance:', `${usdtBalance.toFixed(2)} USD`],
-                ['Plan:', userData?.plan || 'free'],
-                ['Total Deposit:', `$${userData?.deposit_amount?.toFixed(2) || '0.00'}`],
-                ['Total Withdrawal:', `$${userData?.withdrawal_amount?.toFixed(2) || '0.00'}`],
-              ].map(([label, value], index) => (
-                <div 
-                  key={index}
-                  className="flex justify-between items-center p-4 bg-white/5 rounded-lg border border-gray-700"
-                >
-                  <span className="text-gray-300">{label}</span>
-                  <span className="text-white font-medium">{value}</span>
-                </div>
-              ))}
+          <div className="space-y-4">
+              {(() => {
+                return [
+                  ["USDT Balance:", `${usdtBalance.toFixed(2)} USD`],
+                  ["Join Date:", userData?.join_date ? new Date(userData.join_date).toLocaleDateString() : "N/A"],
+                  ["Deposit:", `$${userData?.deposit_amount?.toFixed(2) || "0.00"}`],
+                  ["Profit (Real-time):", `$${currentProfit.toFixed(2)}`], // Profit real-time
+                  ["Withdrawable:", `$${userData?.withdrawal_amount?.toFixed(2) || "0.00"}`],
+                ].map(([label, value], index) => (
+                  <div key={index} className="flex justify-between items-center p-4 bg-white/5 rounded-lg border border-gray-700">
+                    <span className="text-gray-300">{label}</span>
+                    <span className="text-white font-medium">{value}</span>
+                  </div>
+                ));
+              })()}
             </div>
             <div className="mt-8 flex justify-center gap-4">
               <ConnectButton 
@@ -367,57 +391,69 @@ const Wallet = () => {
         </div>
       )}
       {activeTab === 'transactions' && (
-      <div className="p-6 border border-gray-700 rounded-xl bg-gradient-to-br from-blue-900/50 to-purple-900/50 backdrop-blur-sm">
-        <div className="text-center">
-          <div className="space-y-4">
-          <p className="text-gray-300">Withdraw</p>
-        
-            {/* Jika belum ada data withdraw */}
-            {withdrawals.length === 0 ? (
-              <p className="text-gray-400">No withdrawals yet.</p>
-            ) : (
-              withdrawals.map((withdrawal) => (
-                <div key={withdrawal.id} className="p-4 bg-white/5 rounded-lg border border-gray-700">
-                  <div className="flex justify-between">
-                    <p className="text-gray-300">Amount:</p>
-                    <span className="text-white font-medium">{withdrawal.withdrawal_amount} USD</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <p className="text-gray-300">Created At:</p>
-                    <span className="text-white font-medium">{withdrawal.created_at}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <p className="text-gray-300">Status:</p>
-                    <span 
-                      className={`font-medium ${
-                        withdrawal.status === 'pending' ? 'text-yellow-400' 
-                        : withdrawal.status === 'approved' ? 'text-green-400' 
-                        : 'text-red-400'
-                      }`}
+        <div className="p-6 border border-gray-700 rounded-xl bg-gradient-to-br from-blue-900/50 to-purple-900/50 backdrop-blur-sm">
+          <div className="text-center">
+            <div className="space-y-4">
+              <p className="text-gray-300">Withdraw</p>
+              {/* Jika belum ada data withdraw */}
+              {withdrawals.length === 0 ? (
+                <p className="text-gray-400">No withdrawals yet.</p>
+              ) : (
+                withdrawals.map((withdrawal) => (
+                  <div key={withdrawal.id} className="p-4 bg-white/5 rounded-lg border border-gray-700">
+                    <div className="flex justify-between">
+                      <p className="text-gray-300">Amount:</p>
+                      <span className="text-white font-medium">{withdrawal.withdrawal_amount} USD</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <p className="text-gray-300">Created At:</p>
+                      <span className="text-white font-medium">{withdrawal.created_at}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <p className="text-gray-300">Status:</p>
+                      <span 
+                        className={`font-medium ${
+                          withdrawal.status === 'pending' ? 'text-yellow-400' 
+                          : withdrawal.status === 'approved' ? 'text-green-400' 
+                          : 'text-red-400'
+                        }`}
                       >
-                      {withdrawal.status === 'pending' ? 'Pending' 
-                      : withdrawal.status === 'approved' ? 'Approved' 
-                      : 'Rejected'}
-                    </span>
+                        {withdrawal.status === 'pending' ? 'Pending' 
+                        : withdrawal.status === 'approved' ? 'Approved' 
+                        : 'Rejected'}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))
+                ))
+              )}
+            </div>
+            {/* Hitung apakah sudah 30 hari join (join_date ada di userData) */}
+            {userData && (
+              <div className="mt-4">
+                <p className="text-gray-300">
+                  {new Date().getTime() - new Date(userData.join_date).getTime() >= 30 * 24 * 60 * 60 * 1000
+                    ? "You are eligible for withdrawal."
+                    : "Withdrawal available after 30 days."}
+                </p>
+              </div>
             )}
+            {/* Tombol Withdraw */}
+            <div className="mt-8 flex justify-center gap-4">
+              <button
+                onClick={() => setShowWithdrawModal(true)}
+                disabled={!userData || new Date().getTime() - new Date(userData.join_date).getTime() < 30 * 24 * 60 * 60 * 1000}
+                className={`px-6 py-2 rounded-lg text-white transition-colors ${
+                  !userData || new Date().getTime() - new Date(userData.join_date).getTime() < 30 * 24 * 60 * 60 * 1000
+                    ? "bg-gray-500 cursor-not-allowed"
+                    : "bg-red-500 hover:bg-red-600"
+                }`}
+              >
+                Withdraw
+              </button>
+            </div>
           </div>
-
-      {/* Tombol Withdraw */}
-      <div className="mt-8 flex justify-center gap-4">
-        <button
-          onClick={() => setShowWithdrawModal(true)}
-          className="px-6 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-white transition-colors"
-        >
-          Withdraw
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
+        </div>
+      )}
     </div>
   
       {/* Withdraw Modal */}
