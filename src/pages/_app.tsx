@@ -32,8 +32,8 @@ function MyApp({ Component, pageProps }: AppProps) {
     script.onload = () => {
       // Menjalankan SDK setelah script dimuat
       window.chatwootSDK.run({
-        websiteToken: 'Qtpz7K44fzN9vmB2fnLkcYGK',  // Ganti dengan token yang sesuai
-        baseUrl: 'arsylastore.shop:3001',  // Ganti dengan URL Chatwoot Anda
+        websiteToken: 'yQYWoQetp42yrvKgJ6UHdNrd',  // Ganti dengan token yang sesuai
+        baseUrl: 'http://128.199.83.3:3001',  // Ganti dengan URL Chatwoot Anda
       });
     };
     document.body.appendChild(script);  // Menambahkan script ke body
