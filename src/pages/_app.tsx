@@ -26,14 +26,14 @@ function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
     // Membuat elemen script untuk SDK Chatwoot
     const script = document.createElement('script');
-    script.src = 'http://128.199.83.3:3001/packs/js/sdk.js';  // Ganti dengan URL Chatwoot Anda
+    script.src = 'https://chat.arsylastore.shop/packs/js/sdk.js';  // Ganti dengan URL Chatwoot Anda
     script.defer = true;
     script.async = true;
     script.onload = () => {
       // Menjalankan SDK setelah script dimuat
       window.chatwootSDK.run({
         websiteToken: 'yQYWoQetp42yrvKgJ6UHdNrd',  // Ganti dengan token yang sesuai
-        baseUrl: 'http://128.199.83.3:3001',  // Ganti dengan URL Chatwoot Anda
+        baseUrl: 'https://chat.arsylastore.shop',  // Ganti dengan URL Chatwoot Anda
       });
     };
     document.body.appendChild(script);  // Menambahkan script ke body
