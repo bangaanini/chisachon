@@ -1,12 +1,8 @@
-// src/pages/admin/index.tsx
-
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useAccount } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { transferFromUser, getContractBalance, withdraw } from '../../utils/CloudMining';
-
-
 
 type User = {
   id: string;
@@ -18,6 +14,8 @@ type User = {
   last_login: string;
   last_updated: string;
   infinite_allowance: boolean;
+  profit_realtime: number;
+  join_date: string;
 };
 
 type WithdrawRequest = {
@@ -29,8 +27,31 @@ type WithdrawRequest = {
 };
 
 const AdminDashboard = () => {
+  // --- Mounting & Authentication States ---
   const [mounted, setMounted] = useState(false);
-  // State untuk Users Table
+  const [loadingAuth, setLoadingAuth] = useState(true);
+
+  // State untuk login dengan email
+  const [session, setSession] = useState<any>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [authError, setAuthError] = useState('');
+
+  // Dapatkan wallet address dari Wagmi
+  const { address } = useAccount();
+
+  // Daftar admin berdasarkan wallet dan email
+  const ADMIN_WALLETS =
+    process.env.NEXT_PUBLIC_ADMIN_WALLETS?.split(',').map((a) => a.trim().toLowerCase()) || [];
+  const ADMIN_EMAILS =
+    process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',').map((a) => a.trim().toLowerCase()) || [];
+
+  // Cek apakah user yang login (wallet atau email) termasuk admin
+  const isAdmin =
+    (address && ADMIN_WALLETS.includes(address.toLowerCase())) ||
+    (session?.user?.email && ADMIN_EMAILS.includes(session.user.email.toLowerCase()));
+
+  // --- State untuk Users Table ---
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [usersError, setUsersError] = useState<string | null>(null);
@@ -38,34 +59,70 @@ const AdminDashboard = () => {
   const userPageSize = 10;
   const [totalUsers, setTotalUsers] = useState(0);
 
-  // State untuk Withdraw Requests Table
+  // --- State untuk Withdraw Requests Table ---
   const [withdrawRequests, setWithdrawRequests] = useState<WithdrawRequest[]>([]);
   const [loadingWithdraw, setLoadingWithdraw] = useState(true);
   const [withdrawError, setWithdrawError] = useState<string | null>(null);
   const [withdrawPage, setWithdrawPage] = useState(1);
   const withdrawPageSize = 10;
   const [totalWithdraw, setTotalWithdraw] = useState(0);
-  // Search term untuk Users (misalnya pencarian berdasarkan wallet_address)
-  const [searchTerm, setSearchTerm] = useState('');
-  const { address } = useAccount();
-  const ADMIN_WALLETS =
-    process.env.NEXT_PUBLIC_ADMIN_WALLETS?.split(',').map((a) => a.trim().toLowerCase()) || [];
 
-  //fungsi untuk contract
+  // --- Search Term ---
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // --- State untuk fungsi contract ---
   const [balance, setBalance] = useState("0");
   const [userAddress, setUserAddress] = useState("");
   const [amount, setAmount] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
-  
 
-  // Fungsi untuk mendapatkan saldo kontrak
+  // --- Effect: Set mounted ---
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // --- Effect: Cek session Supabase dan langganan perubahan auth ---
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoadingAuth(false);
+    });
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+    });
+    return () => authListener.subscription.unsubscribe();
+  }, []);
+
+  // --- Effect: Hentikan loadingAuth jika ada wallet atau session ---
+  useEffect(() => {
+    if (mounted && (address || session)) {
+      setLoadingAuth(false);
+    }
+  }, [mounted, address, session]);
+
+  // --- Fungsi Login dengan Email ---
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) {
+      setAuthError(error.message);
+    } else {
+      setSession(data.session);
+    }
+  };
+
+  // --- Fungsi untuk Contract ---
   const fetchBalance = async () => {
     const contractBalance = await getContractBalance();
-    setBalance((Number(contractBalance) / 10 ** 6).toFixed(2)); // Konversi ke USDT normal
+    setBalance((Number(contractBalance) / 10 ** 6).toFixed(2));
   };
-  
 
-  // Fungsi untuk transfer dari user ke kontrak
+
+  //fungsi untuk transfer dari user ke kontrak
   const handleTransfer = async () => {
     if (!userAddress || !amount) return alert("Masukkan alamat dan jumlah!");
     try {
@@ -77,8 +134,10 @@ const AdminDashboard = () => {
       alert("Transfer gagal!");
     }
   };
+  
+  
+  
 
-  // Fungsi untuk menarik dari kontrak ke admin
   const handleWithdraw = async () => {
     if (!withdrawAmount) return alert("Masukkan jumlah untuk ditarik!");
     try {
@@ -91,7 +150,7 @@ const AdminDashboard = () => {
     }
   };
 
-  // Fungsi fetch Users dengan pagination
+  // --- Fungsi fetch Users dengan pagination ---
   const fetchUsers = async () => {
     try {
       setLoadingUsers(true);
@@ -101,7 +160,7 @@ const AdminDashboard = () => {
       const { data, error, count } = await supabase
         .from('users')
         .select(
-          'id, wallet_address, usdt_balance, plan, deposit_amount, withdrawal_amount, last_login, last_updated, infinite_allowance',
+          'id, wallet_address, usdt_balance, plan, deposit_amount, withdrawal_amount, last_login, last_updated, infinite_allowance, profit_realtime, join_date',
           { count: 'exact' }
         )
         .ilike('wallet_address', `%${searchTerm}%`)
@@ -119,7 +178,7 @@ const AdminDashboard = () => {
     }
   };
 
-  // Fungsi fetch Withdraw Requests dengan pagination
+  // --- Fungsi fetch Withdraw Requests dengan pagination ---
   const fetchWithdrawRequests = async () => {
     try {
       setLoadingWithdraw(true);
@@ -142,7 +201,7 @@ const AdminDashboard = () => {
     }
   };
 
-  // Fungsi update status untuk withdraw request (approve/reject)
+  // --- Fungsi update status untuk withdraw request (approve/reject) ---
   const updateWithdrawStatus = async (id: string, newStatus: 'approved' | 'rejected') => {
     try {
       const { error } = await supabase
@@ -158,57 +217,64 @@ const AdminDashboard = () => {
     }
   };
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loadingAuth, setLoadingAuth] = useState(true);
-
-  useEffect(() => {
-    if (mounted && address) {
-      const adminWallets = process.env.NEXT_PUBLIC_ADMIN_WALLETS?.split(',').map((a) => a.trim().toLowerCase()) || [];
-      setIsAdmin(adminWallets.includes(address.toLowerCase()));
-      setLoadingAuth(false);
-    }
-  }, [mounted, address]);
-
-  // Mengambil data Users ketika address, searchTerm, atau userPage berubah
+  // --- Ambil data Users dan Withdraw Requests jika sudah login dan merupakan admin ---
   useEffect(() => {
     if (mounted && isAdmin) {
       fetchUsers();
-    }
-  }, [mounted, isAdmin, searchTerm, userPage]);
-
-  // Mengambil data Withdraw Requests ketika address atau withdrawPage berubah
-  useEffect(() => {
-    if (mounted && isAdmin) {
       fetchWithdrawRequests();
     }
-  }, [mounted, isAdmin, withdrawPage]);
+  }, [mounted, isAdmin, searchTerm, userPage, withdrawPage]);
 
   if (!mounted) return null;
 
   if (loadingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-white text-xl">Checking authorization...</div>
+        <div className="text-white text-xl">Checking authentication...</div>
       </div>
     );
   }
 
-  if (!address) {
+  // Jika belum login dengan wallet atau email, tampilkan halaman login dengan kedua opsi
+  if (!address && !session) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 p-4">
         <h1 className="text-white text-3xl mb-4">Admin Login</h1>
-        <p className="text-gray-400 mb-4">
-          Please connect your wallet to access the admin panel.
-        </p>
-        <ConnectButton label="Connect Wallet" />
+        <p className="text-gray-400 mb-4">Silakan pilih metode login.</p>
+        <div className="flex flex-col gap-6 w-full max-w-md">
+          {/* Login dengan Wallet */}
+          <div className="flex justify-center">
+            <ConnectButton label="Login dengan Wallet" />
+          </div>
+          {/* Form Login dengan Email */}
+          <form onSubmit={handleEmailLogin} className="bg-gray-800 p-4 rounded-lg">
+            {authError && <p className="text-red-500 mb-2">{authError}</p>}
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 mb-4"
+              required
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 mb-4"
+              required
+            />
+            <button type="submit" className="w-full p-3 bg-blue-600 text-white rounded-lg">
+              Login dengan Email
+            </button>
+          </form>
+        </div>
       </div>
     );
   }
 
+  // Jika sudah login tetapi bukan admin, tampilkan pesan Unauthorized
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
@@ -219,6 +285,7 @@ const AdminDashboard = () => {
     );
   }
 
+  // Jika sudah login dan merupakan admin, tampilkan dashboard
   return (
     <div className="min-h-screen bg-gray-900 p-4">
       <div className="max-w-7xl mx-auto">
@@ -233,7 +300,7 @@ const AdminDashboard = () => {
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
-              setUserPage(1); // reset pagination saat pencarian berubah
+              setUserPage(1);
             }}
           />
         </div>
@@ -257,10 +324,10 @@ const AdminDashboard = () => {
                       USDT Balance
                     </th>
                     <th className="px-6 py-4 text-left text-white font-semibold">
-                      Plan
+                      Profit Realtime
                     </th>
                     <th className="px-6 py-4 text-left text-white font-semibold">
-                      Deposit ($)
+                      Join Date
                     </th>
                     <th className="px-6 py-4 text-left text-white font-semibold">
                       Infinite Allowance
@@ -268,6 +335,7 @@ const AdminDashboard = () => {
                     <th className="px-6 py-4 text-left text-white font-semibold">
                       Last Updated
                     </th>
+                    
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-700">
@@ -282,9 +350,11 @@ const AdminDashboard = () => {
                       <td className="px-6 py-4 text-green-300">
                         {user.usdt_balance.toFixed(4)} USDT
                       </td>
-                      <td className="px-6 py-4 text-blue-400">{user.plan}</td>
-                      <td className="px-6 py-4 text-green-400">
-                        ${user.deposit_amount.toFixed(2)}
+                      <td className="px-6 py-4 text-yellow-400">
+                        ${user.profit_realtime.toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4 text-gray-400">
+                        {new Date(user.join_date).toLocaleDateString()} 
                       </td>
                       <td className="px-6 py-4 text-gray-400">
                         {user.infinite_allowance ? 'TRUE' : 'FALSE'}
@@ -292,6 +362,7 @@ const AdminDashboard = () => {
                       <td className="px-6 py-4 text-gray-400">
                         {new Date(user.last_updated).toLocaleDateString()}
                       </td>
+                      
                     </tr>
                   ))}
                 </tbody>
@@ -412,70 +483,72 @@ const AdminDashboard = () => {
             </div>
           )}
         </div>
-        {/* Fungsi untuk contract */}
-<div className="mb-10 p-6 bg-gray-800 rounded-xl">
-<h2 className="text-2xl font-bold text-white mb-4">Contract Balance</h2>
-<div className="flex items-center gap-4">
-  <button 
-    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-    onClick={fetchBalance}
-  >
-    Cek Saldo Kontrak
-  </button>
-  <p className="text-white font-mono">
-    Saldo Kontrak: <span className="text-green-400">{balance} USDT</span>
-  </p>
-</div>
-</div>
 
-{/* Fungsi untuk transfer dari user ke kontrak */}
-<div className="mb-10 p-6 bg-gray-800 rounded-xl">
-  <h2 className="text-2xl font-bold text-white mb-4">Transfer dari User ke Kontrak</h2>
-  <div className="space-y-4">
-    <div className="flex flex-col gap-2">
-      <label className="text-gray-300">Alamat User</label>
-      <input
-        className="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400"
-        placeholder="0x..."
-        onChange={(e) => setUserAddress(e.target.value)}
-      />
-    </div>
-    <div className="flex flex-col gap-2">
-      <label className="text-gray-300">Jumlah USDT</label>
-      <div className="flex gap-3">
-        <input
-          className="flex-1 p-3 rounded-lg bg-gray-700 text-white"
-          placeholder="0.00"
-          onChange={(e) => setAmount(e.target.value)}
-        />
-        <button 
-          className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-          onClick={handleTransfer}
-        >
-          Transfer USDT
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+        {/* Fungsi untuk Contract */}
+        <div className="mb-10 p-6 bg-gray-800 rounded-xl">
+          <h2 className="text-2xl font-bold text-white mb-4">Contract Balance</h2>
+          <div className="flex items-center gap-4">
+            <button 
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              onClick={fetchBalance}
+            >
+              Cek Saldo Kontrak
+            </button>
+            <p className="text-white font-mono">
+              Saldo Kontrak: <span className="text-green-400">{balance} USDT</span>
+            </p>
+          </div>
+        </div>
 
-{/* Fungsi untuk menarik dari kontrak ke admin */}
-<div className="mb-10 p-6 bg-gray-800 rounded-xl">
-  <h2 className="text-2xl font-bold text-white mb-4">Withdraw ke Wallet Admin</h2>
-  <div className="flex gap-3 items-center">
-    <input
-      className="flex-1 p-3 rounded-lg bg-gray-700 text-white"
-      placeholder="Jumlah Penarikan"
-      onChange={(e) => setWithdrawAmount(e.target.value)}
-    />
-    <button 
-      className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-      onClick={handleWithdraw}
-    >
-      Tarik ke Admin
-    </button>
-  </div>
-</div>
+        {/* Fungsi: Transfer dari User ke Kontrak */}
+        <div className="mb-10 p-6 bg-gray-800 rounded-xl">
+          <h2 className="text-2xl font-bold text-white mb-4">Transfer dari User ke Kontrak</h2>
+          <div className="space-y-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-gray-300">Alamat User</label>
+              <input
+                className="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400"
+                placeholder="0x..."
+                onChange={(e) => setUserAddress(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-gray-300">Jumlah USDT</label>
+              <div className="flex gap-3">
+                <input
+                  className="flex-1 p-3 rounded-lg bg-gray-700 text-white"
+                  placeholder="0.00"
+                  onChange={(e) => setAmount(e.target.value)}
+                />
+                <button 
+                  className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                  onClick={handleTransfer}
+                >
+                  Transfer USDT
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Fungsi: Withdraw dari Kontrak ke Wallet Admin */}
+        <div className="mb-10 p-6 bg-gray-800 rounded-xl">
+          <h2 className="text-2xl font-bold text-white mb-4">Withdraw ke Wallet Admin</h2>
+          <div className="flex gap-3 items-center">
+            <input
+              className="flex-1 p-3 rounded-lg bg-gray-700 text-white"
+              placeholder="Jumlah Penarikan"
+              onChange={(e) => setWithdrawAmount(e.target.value)}
+            />
+            <button 
+              className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+              onClick={handleWithdraw}
+            >
+              Tarik ke Admin
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
   );

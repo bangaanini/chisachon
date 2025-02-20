@@ -9,6 +9,8 @@ import Price from './Price';
 import FAQ from './FAQ'
 import Footer from './Footer'
 import Link from 'next/link';
+import EVN from './EVN';
+import { useState, useEffect } from 'react';
 
 
 
@@ -27,6 +29,9 @@ const Home: NextPage = () => {
       <Hero />
       <Wallet /> 
       <Price />
+      
+      <EVN /> 
+
       <FAQ />
       <Footer />
     </div>

