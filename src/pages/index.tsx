@@ -11,6 +11,7 @@ import Footer from './Footer'
 import Link from 'next/link';
 import EVN from './EVN';
 import { useState, useEffect } from 'react';
+import Swap from './Swap';
 
 
 
@@ -28,6 +29,7 @@ const Home: NextPage = () => {
       <Header />  
       <Hero />
       <EVN />
+      <Swap />
       <Wallet /> 
       <Price />
       <FAQ />
