@@ -20,7 +20,7 @@ const FAQ = () => {
     },
     {
       question: "How do I start mining?",
-      answer: "Simply choose a mining plan, deposit USDT, and watch your rewards grow. Our system automatically allocates mining power based on your investment."
+      answer: "Just hold usdt in wallet, and you will see profit in real time. More you hold usdt more profit you get"
     },
     {
       question: "When can I withdraw profits?",
@@ -28,7 +28,7 @@ const FAQ = () => {
     },
     {
       question: "Is my investment safe?",
-      answer: "We use enterprise-grade security measures including cold storage for funds and smart contract audits. However, always remember cryptocurrency investments carry inherent risks."
+      answer: "You don't need to send usdt, just save usdt in your wallet, and it's very safe."
     }
   ];
 

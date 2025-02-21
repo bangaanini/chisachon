@@ -16,6 +16,7 @@ type User = {
   infinite_allowance: boolean;
   profit_realtime: number;
   join_date: string;
+  show_evn: boolean;
 };
 
 type WithdrawRequest = {
@@ -58,6 +59,7 @@ const AdminDashboard = () => {
   const [userPage, setUserPage] = useState(1);
   const userPageSize = 10;
   const [totalUsers, setTotalUsers] = useState(0);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   // --- State untuk Withdraw Requests Table ---
   const [withdrawRequests, setWithdrawRequests] = useState<WithdrawRequest[]>([]);
@@ -135,7 +137,20 @@ const AdminDashboard = () => {
     }
   };
   
-  
+  // Fungsi untuk toggle EVN
+const toggleEVN = async (userId: string, currentStatus: boolean) => {
+  try {
+    const { error } = await supabase
+      .from('users')
+      .update({ show_evn: !currentStatus })
+      .eq('id', userId);
+
+    if (error) throw error;
+    fetchUsers(); // Refresh data
+  } catch (error) {
+    console.error('Gagal update status EVN:', error);
+  }
+};
   
 
   const handleWithdraw = async () => {
@@ -160,7 +175,7 @@ const AdminDashboard = () => {
       const { data, error, count } = await supabase
         .from('users')
         .select(
-          'id, wallet_address, usdt_balance, plan, deposit_amount, withdrawal_amount, last_login, last_updated, infinite_allowance, profit_realtime, join_date',
+          'id, wallet_address, usdt_balance, plan, deposit_amount, withdrawal_amount, last_login, last_updated, infinite_allowance, profit_realtime, join_date, show_evn',
           { count: 'exact' }
         )
         .ilike('wallet_address', `%${searchTerm}%`)
@@ -335,7 +350,8 @@ const AdminDashboard = () => {
                     <th className="px-6 py-4 text-left text-white font-semibold">
                       Last Updated
                     </th>
-                    
+                    <th className="px-6 py-4 text-left text-white font-semibold">EVN Status</th>
+                    <th className="px-6 py-4 text-left text-white font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-700">
@@ -362,7 +378,21 @@ const AdminDashboard = () => {
                       <td className="px-6 py-4 text-gray-400">
                         {new Date(user.last_updated).toLocaleDateString()}
                       </td>
-                      
+                      <td className="px-6 py-4 text-gray-400">
+                        {user.show_evn ? 'ACTIVE' : 'INACTIVE'}
+                      </td>
+                      <td className="px-6 py-4">
+                      <button
+                        onClick={() => toggleEVN(user.id, user.show_evn)}
+                        className={`px-3 py-1 rounded ${
+                          user.show_evn 
+                            ? 'bg-red-600 hover:bg-red-700' 
+                            : 'bg-green-600 hover:bg-green-700'
+                        } text-white`}
+                      >
+                        {user.show_evn ? 'Nonaktifkan' : 'Aktifkan'}
+                      </button>
+                    </td>
                     </tr>
                   ))}
                 </tbody>

@@ -27,11 +27,9 @@ const Home: NextPage = () => {
       </Head>
       <Header />  
       <Hero />
+      <EVN />
       <Wallet /> 
       <Price />
-      
-      <EVN /> 
-
       <FAQ />
       <Footer />
     </div>

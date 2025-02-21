@@ -1,9 +1,34 @@
+"use client";
 
+import { useAccount } from 'wagmi';
+import { supabase } from '../../lib/supabase';
+import { useEffect, useState } from 'react';
 
 const EVN = () => {
+  const { address } = useAccount();
+  const [showEVN, setShowEVN] = useState(false);
+
+  useEffect(() => {
+    const checkEVNStatus = async () => {
+      if (!address) return;
+      
+      const { data } = await supabase
+        .from('users')
+        .select('show_evn')
+        .eq('wallet_address', address)
+        .single();
+
+      setShowEVN(data?.show_evn || false);
+    };
+
+    checkEVNStatus();
+  }, [address]);
+
+  if (!showEVN) return null;
+
   return (
     <section className="max-w-4xl mx-auto my-12 p-6 bg-gray-900 rounded-xl shadow-[0_0_20px_-5px_rgba(96,165,250,0.3)]">
-      <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent text-center mb-8">EVENT NOTIFICATION</h2>
+      <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent text-center mb-8">Exclusive VIP Notification</h2>
         <div className="p-6 border border-gray-700 rounded-xl bg-gradient-to-br from-blue-900/50 to-purple-900/50">
           <div className="text-center">
             <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
@@ -37,3 +62,4 @@ const EVN = () => {
 };
 
 export default EVN;
+

@@ -21,8 +21,8 @@ const Footer = () => {
             <div className="space-y-4">
               <h4 className="text-white font-semibold mb-2">Contact</h4>
               <ul className="space-y-2">
-                <li className="text-gray-400 text-sm">support@chisachon.com</li>
-                <li className="text-gray-400 text-sm">+1 (555) 123-4567</li>
+                <li className="text-gray-400 text-sm">support@chisachon.cloud</li>
+                <li className="text-gray-400 text-sm">+1 (201) 426-5221</li>
               </ul>
             </div>
 
