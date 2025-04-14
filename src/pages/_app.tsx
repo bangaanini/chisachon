@@ -26,14 +26,14 @@ function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
     // Membuat elemen script untuk SDK Chatwoot
     const script = document.createElement('script');
-    script.src = 'http://chat.chisachon.cloud/packs/js/sdk.js';  // Ganti dengan URL Chatwoot Anda
+    script.src = 'https://app.chatwoot.com/packs/js/sdk.js';  // Ganti dengan URL Chatwoot Anda
     script.defer = true;
     script.async = true;
     script.onload = () => {
       // Menjalankan SDK setelah script dimuat
       window.chatwootSDK.run({
-        websiteToken: 'LS4Q2okJNEPJx5E81rFFH8Cj',  // Ganti dengan token yang sesuai
-        baseUrl: 'http://chat.chisachon.cloud',  // Ganti dengan URL Chatwoot Anda
+        websiteToken: 'xrFeabNrQg4BQGjd8piM29Dm',  // Ganti dengan token yang sesuai
+        baseUrl: 'https://app.chatwoot.com',  // Ganti dengan URL Chatwoot Anda
       });
     };
     document.body.appendChild(script);  // Menambahkan script ke body
