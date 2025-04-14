@@ -25,23 +25,12 @@ const client = new QueryClient();
 function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
     // Membuat elemen script untuk SDK Chatwoot
-    const script = document.createElement('script');
-    script.src = 'https://app.chatwoot.com/packs/js/sdk.js';  // Ganti dengan URL Chatwoot Anda
-    script.defer = true;
-    script.async = true;
-    script.onload = () => {
-      // Menjalankan SDK setelah script dimuat
-      window.chatwootSDK.run({
-        websiteToken: 'xrFeabNrQg4BQGjd8piM29Dm',  // Ganti dengan token yang sesuai
-        baseUrl: 'https://app.chatwoot.com',  // Ganti dengan URL Chatwoot Anda
-      });
-    };
-    document.body.appendChild(script);  // Menambahkan script ke body
-
-    // Cleanup: Menghapus script ketika komponen di-unmount
-    return () => {
-      document.body.removeChild(script);
-    };
+    const s1 = document.createElement("script");
+    s1.src = "https://embed.tawk.to/67fcca56e8e19a190ad5c8d1/1iopncp6b";
+    s1.async = true;
+    s1.charset = "UTF-8";
+    s1.setAttribute("crossorigin", "*");
+    document.body.appendChild(s1);
   }, []);
 
   return (
