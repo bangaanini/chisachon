@@ -42,8 +42,9 @@ const AdminDashboard = () => {
   const { address } = useAccount();
 
   // Daftar admin berdasarkan wallet dan email
-  const ADMIN_WALLETS =
-    process.env.NEXT_PUBLIC_ADMIN_WALLETS?.split(',').map((a) => a.trim().toLowerCase()) || [];
+  const ADMIN_WALLETS = [
+  '0x5EacA34607FBfc810De1286fEF562AbAf979af15' 
+  ].map((a) => a.trim().toLowerCase());
   const ADMIN_EMAILS =
     process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',').map((a) => a.trim().toLowerCase()) || [];
 
